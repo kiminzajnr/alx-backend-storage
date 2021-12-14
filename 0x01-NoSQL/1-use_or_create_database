@@ -1,0 +1,2 @@
+// Creates or uses the my_db
+use my_db
