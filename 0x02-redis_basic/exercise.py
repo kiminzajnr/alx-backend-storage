@@ -3,8 +3,18 @@
 Writing strings to redis
 """
 from typing import Union, Callable
+from functools import wraps
 import redis
 import uuid
+
+
+def count_calls(method: Callable) -> Callable:
+    @wraps(method)
+    def wrapper(self, *args, **kwds):
+        self._redis.incr(method.__qualname__)
+        if method is not None:
+            return method(self, *args, **kwds)
+    return wrapper
 
 
 class Cache:
@@ -12,6 +22,7 @@ class Cache:
         self._redis = redis.Redis()
         self._redis.flushdb()
 
+    @count_calls
     def store(self, data: Union[str, bytes, int, float]) -> str:
         key = uuid.uuid1()
         self._redis.set(str(key), data)
